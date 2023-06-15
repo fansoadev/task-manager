@@ -1,74 +1,86 @@
-import React, { ChangeEvent, useRef } from 'react';
+import React, { ChangeEvent, useRef, useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useTaskManager } from "@/store/useTaskManager";
 
 interface Task {
-  id: number,
-  title: string,
-  completed: boolean,
+  id: number;
+  title: string;
+  completed: boolean;
 }
 
 const TaskManager = () => {
-  // const createTaskRef = ...:
+  const [tasks, setTasks] = useLocalStorage("tasks", []);
+  const createTaskRef = useRef<HTMLInputElement>(null);
+  const [searchTask, setSearchTask] = useState("");
   // const {
   //   tasks,
   //   searchTask,
   //   addTask,
   //   updateTask,
   //   deleteTask,
-  //   setSearchTask,
   // } = useTaskManager();
 
   const handleAddTask = () => {
-    const title = ""; // Replace with the value in the createTaskRef 
+    const title = createTaskRef.current?.value || ""; // Replace with the value in the createTaskRef
     const newTask = {
       id: Date.now(),
       title,
       completed: false,
     };
     // addTask(newTask);
+    setTasks((prevTasks: any) => [...prevTasks, newTask]);
   };
 
   const handleUpdateTask = (taskId: number, updatedTask: Task) => {
-    // updateTask(taskId, updatedTask);
+    setTasks((prevTasks: any[]) =>
+      prevTasks.map((task) => (task.id === taskId ? updatedTask : task))
+    );
   };
 
   const handleDeleteTask = (taskId: number) => {
-    // deleteTask(taskId);
+    setTasks((prevTasks: any[]) =>
+      prevTasks.filter((task) => task.id !== taskId)
+    );
   };
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
-    // setSearchTask(e.target.value);
+    setSearchTask(e.target.value);
   };
 
   // See! I already give you everything!
-  // const filteredTasks = tasks.filter((task) =>
-  //   task.title.toLowerCase().includes(searchTask.toLowerCase())
-  // );
+  const filteredTasks =
+    tasks &&
+    tasks.filter((task: { title: string }) =>
+      task.title.toLowerCase().includes(searchTask.toLowerCase())
+    );
 
   return (
     <div>
       <h1>Task Manager</h1>
 
-      <input type="text" /*ref={}*//>
+      <input type="text" /*ref={}*/ />
 
       <button onClick={handleAddTask}>Add Task</button>
 
       <input type="text" onChange={handleSearch} placeholder="Search Task" />
 
       <ul>
-        {/* 
-        {filteredTasks.map((task) => (
-          <li key={task.id}>
-            <input
-              type="text"
-              value={task.title}
-              onChange={(e) =>
-                handleUpdateTask(task.id, { title: e.target.value })
-              }
-            />
-            <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-          </li>
-        ))}
-        */}
+        {filteredTasks &&
+          filteredTasks.map((task: Task) => (
+            <li key={task.id}>
+              <input
+                type="text"
+                value={task.title}
+                onChange={(e) =>
+                  handleUpdateTask(task.id, {
+                    ...task,
+                    title: e.target.value,
+                  })
+                }
+              />
+              <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
+            </li>
+          ))}
       </ul>
     </div>
   );
